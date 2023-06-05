@@ -11,6 +11,7 @@ const { extractValidFields } = require('../lib/validation')
  * Schema describing required/optional fields of a photo object.
  */
 const PhotoSchema = {
+  file: {required: true},
   businessId: { required: true },
   caption: { required: false }
 }
@@ -21,12 +22,16 @@ exports.PhotoSchema = PhotoSchema
  * a Promise that resolves to the ID of the newly-created photo entry.
  */
 async function insertNewPhoto(photo) {
-  photo = extractValidFields(photo, PhotoSchema)
-  photo.businessId = ObjectId(photo.businessId)
-  const db = getDbReference()
-  const collection = db.collection('photos')
-  const result = await collection.insertOne(photo)
-  return result.insertedId
+  const fileExtension = photo.mimetype.split('/')[1];
+  if (!['jpeg', 'jpg', 'png'].includes(fileExtension)) {
+    throw new Error("Only JPEGS and PNGS are supported");
+  }
+  photo = extractValidFields(photo, PhotoSchema);
+  photo.businessId = ObjectId(photo.businessId);
+  const db = getDbReference();
+  const collection = db.collection('photos');
+  const result = await collection.insertOne(photo);
+  return result.insertedId;
 }
 exports.insertNewPhoto = insertNewPhoto
 
