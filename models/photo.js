@@ -11,7 +11,7 @@ const { extractValidFields } = require('../lib/validation')
  * Schema describing required/optional fields of a photo object.
  */
 const PhotoSchema = {
-  file: {required: true},
+  file: { required: true },
   businessId: { required: true },
   caption: { required: false }
 }
@@ -29,6 +29,27 @@ async function insertNewPhoto(photo) {
   photo = extractValidFields(photo, PhotoSchema);
   photo.businessId = ObjectId(photo.businessId);
   const db = getDbReference();
+
+  // Inits stream
+  const bucket = new GridFSBucket(db, { bucketName: 'photos' });
+  const stream = createReadStream(photo.file.path);
+  const uploadStream = bucket.openUploadStream(
+    photo.file.filename, {
+    metadata: {
+      contentType: fileExtension,
+      businessId: photo.businessId,
+      caption: photo.caption
+    }
+  });
+
+  // Uploads stream
+  await new Promise((resolve, reject) => {
+    stream.pipe(uploadStream)
+      .on('error', reject)
+      .on('finish', resolve);
+  });
+
+  return uploadStream.id;
   const collection = db.collection('photos');
   const result = await collection.insertOne(photo);
   return result.insertedId;

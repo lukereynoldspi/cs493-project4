@@ -33,7 +33,9 @@ router.get('/', async (req, res) => {
       businessPage.links.prevPage = `/businesses?page=${businessPage.page - 1}`
       businessPage.links.firstPage = '/businesses?page=1'
     }
-    res.status(200).send(businessPage)
+    fileExtension = businessPage.metadata.contentType
+      photoURL = `/media/photos/${req.params.id}.${fileExtension}`
+      res.status(200).send(businessPage, photoURL)
   } catch (err) {
     console.error(err)
     res.status(500).send({

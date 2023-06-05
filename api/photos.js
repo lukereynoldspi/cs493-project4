@@ -47,7 +47,9 @@ router.get('/:id', async (req, res, next) => {
   try {
     const photo = await getPhotoById(req.params.id)
     if (photo) {
-      res.status(200).send(photo)
+      fileExtension = photo.metadata.contentType
+      photoURL = `/media/photos/${req.params.id}.${fileExtension}`
+      res.status(200).send(photo, photoURL)
     } else {
       next()
     }
