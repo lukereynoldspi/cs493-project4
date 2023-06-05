@@ -1,12 +1,24 @@
 const express = require('express')
 const morgan = require('morgan')
-
+const amqp = require('amqplib');
 const api = require('./api')
 const { connectToDb } = require('./lib/mongo')
 
 const app = express()
 const port = process.env.PORT || 8000
-
+const rabbitmqHost = process.env.RABBITMQ_HOST;
+const rabbitmqUrl = `amqp://${rabbitmqHost}`;
+async function main() {
+  try {
+    const connection = await amqp.connect(rabbitmqUrl);
+    const channel = await connection.createChannel();
+    await channel.assertQueue('echo');
+    
+  } catch (err) {
+    console.error(err);
+  }
+}
+main();
 /*
  * Morgan is a popular logger.
  */
